@@ -5,6 +5,7 @@ This project implements an end-to-end **Azure-based ETL pipeline** that ingests 
 
 The pipeline is built using **Azure Data Factory**, follows a **Raw / Silver / Gold** data lake architecture, and is designed to be production-aligned.
 
+##### For Step by Step guid and screenshots, please read [Step_By_Step.md](Step_By_Step.md)
 ---
 
 ## Architecture
