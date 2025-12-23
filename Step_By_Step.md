@@ -6,8 +6,7 @@ It is intended for:
 - Rebuilding the project from scratch
 - Demonstrating hands-on Azure experience
 
-This guide complements `README.md`.
- For Step by Step guid read [Step_By_Step.md](Step_By_Step.md)
+
 ---
 
 ## 0. Prerequisites
