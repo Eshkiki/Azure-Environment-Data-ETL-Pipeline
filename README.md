@@ -3,7 +3,13 @@
 ## Overview
 This project implements an end-to-end **Azure-based ETL pipeline** that ingests public UK Environment Agency flood monitoring data into a centralized **Azure Data Lake (ADLS Gen2)** for analytics and reporting.
 
-The pipeline is built using **Azure Data Factory**, follows a **Raw / Silver / Gold** data lake architecture, and is designed to be production-aligned.
+The pipeline is built using **Azure Data Factory**, follows data lake architecture, and is designed to be production-aligned.
+
+**Structures**:
+-  **Raw**
+-  Datasets using **Synapse Serverless SQL**, materializes it as **Parquet**, and prepares curated (Silver) 
+- Datasets for reporting in **Power BI** (Gold)
+
 
 ##### For Step by Step guid and screenshots, please read [Step_By_Step.md](Step_By_Step.md)
 ---
@@ -110,14 +116,12 @@ file_name   = stations_yyyyMMdd_HHmmss.json
 ---
 
 ## Current Status
-- Raw ingestion pipeline implemented and validated
-- Silver layer (Synapse Serverless SQL) – planned
+- Raw ingestion pipeline - implemented and validated
+- Silver layer (Synapse Serverless SQL) – implemented and validated
 - Gold layer & Power BI reporting – planned
 
 ---
 
 ## Next Steps
-1. Create external views in Synapse Serverless SQL over raw JSON
-2. Transform and store cleaned data in Silver layer (Parquet)
-3. Build Gold tables for analytics
-4. Develop Power BI dashboards
+1. Build Gold tables for analytics
+2. Develop Power BI dashboards
