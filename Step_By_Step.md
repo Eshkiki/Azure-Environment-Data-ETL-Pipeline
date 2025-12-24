@@ -14,7 +14,7 @@ It is intended for:
 - Contributor access to subscription or resource group
 - Azure Portal access
 - Azure Data Factory Studio
-- Azure Synapse Studio (later stages)
+- Azure Synapse Studio 
 
 ---
 
@@ -69,7 +69,7 @@ It is intended for:
 ---
 
 ## 5. Create Linked Services
-![Linked Services](Screenshots/02_Linked Service.png)
+![Linked Services](Screenshots/02_Linked_Service.png)
 ### 5.1 REST Linked Service
 **ADF Studio → Manage → Linked services → + New**
 - Type: REST
@@ -171,7 +171,119 @@ raw/flood_ea/ingest_date=YYYY-MM-DD/stations_YYYYMMDD_HHMMSS.json
  ![Results](Screenshots/07_Results.png)
 ---
 
-## 9. Common Issues & Fixes
+## 9. Create Synapse Serverless SQL database
+
+### 9.1 Create workspace
+- Azure Synapse Analytics → Create:
+  - Resource group: `hassan-rg-env-datalake-dev`
+  - Workspace name: `synapsews00001`
+  - Security → SQL password: `Your_Strong_Password`
+### 9.2 
+- Azure Synapse Analytics → synapsews00001 → Develop → SQL Script: Built-in
+- Create Database:
+```sql
+CREATE DATABASE env_flood_serverless;
+GO
+```
+- Create Schema:
+```sql
+USE env_flood_serverless;
+GO
+
+CREATE SCHEMA silver;
+GO
+```
+- Create View:
+```sql
+
+CREATE OR ALTER VIEW silver.vw_stations AS
+SELECT
+    JSON_VALUE(item.value, '$.stationReference') AS station_reference,
+    JSON_VALUE(item.value, '$.label')           AS station_label,
+    TRY_CAST(JSON_VALUE(item.value, '$.lat')  AS float) AS lat,
+    TRY_CAST(JSON_VALUE(item.value, '$.long') AS float) AS lon,
+    JSON_VALUE(item.value, '$.riverName')       AS river_name,
+    JSON_VALUE(item.value, '$.catchmentName')   AS catchment_name,
+    JSON_VALUE(item.value, '$.town')            AS town
+FROM OPENROWSET(
+        BULK 'raw/flood_ea/ingest_date=*/stations_*.json',
+        FORMAT = 'CSV',
+        FIELDTERMINATOR = '0x0b',
+        FIELDQUOTE      = '0x0b',
+        ROWTERMINATOR   = '0x0b'
+     )
+     WITH (json_doc NVARCHAR(MAX)) AS src
+CROSS APPLY OPENJSON(src.json_doc, '$.items') AS item;
+
+```
+- Retrive Data:
+```sql
+SELECT TOP (100) [station_reference]
+,[station_label]
+,[lat]
+,[lon]
+,[river_name]
+,[catchment_name]
+,[town]
+ FROM [silver].[vw_stations]
+```
+
+- Create Parquet:
+  - Creates the external data source
+```sql
+CREATE EXTERNAL DATA SOURCE datalake
+WITH (
+    LOCATION = 'silver/'
+);
+
+
+SELECT name, location
+FROM sys.external_data_sources;
+```
+  - CETAS to write Parquet files
+  - This script assumes ff_parquet already exists!
+```sql
+CREATE EXTERNAL TABLE silver.stations_parquet
+WITH (
+    LOCATION = 'silver/flood_ea/stations_v2/',
+    DATA_SOURCE = datalake,
+    FILE_FORMAT = ff_parquet
+)
+AS
+
+SELECT
+    station_reference,
+    station_label,
+    lat,
+    lon,
+    river_name,
+    catchment_name,
+    town
+FROM silver.vw_stations;
+```
+
+- Create and write Parquet files
+```sql
+CREATE EXTERNAL TABLE silver.stations_parquet
+WITH (
+    LOCATION = 'silver/flood_ea/stations/',     
+    DATA_SOURCE = datalake,
+    FILE_FORMAT = ff_parquet
+)
+AS
+SELECT
+    station_reference,
+    station_label,
+    lat,
+    lon,
+    river_name,
+    catchment_name,
+    town
+FROM silver.vw_stations;
+GO
+```
+![Linked Services](Screenshots/08_Synapse.png)
+## 10. Common Issues & Fixes
 
 ### REST 404 Error
 - Ensure Base URL includes `/flood-monitoring`
@@ -184,19 +296,18 @@ raw/flood_ea/ingest_date=YYYY-MM-DD/stations_YYYYMMDD_HHMMSS.json
 
 ---
 
-## 10. What Is Intentionally Not Done Yet
+
+
+## 11. What Is Intentionally Not Done Yet
 - Triggers / scheduling
 - Pagination for large endpoints
-- Silver layer transformations
-- Gold aggregations
+- Aggregations
 - Power BI dashboards
 
 These are future phases.
 
 ---
 
-## 11. Next Phase (Planned)
-- Create Synapse Serverless SQL database
-- Read raw JSON using OPENROWSET
-- Build Silver Parquet tables
+
+## 12. Next Phase (Planned)
 - Expose Gold views for Power BI

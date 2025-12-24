@@ -1,0 +1,8 @@
+SELECT TOP (100) [station_reference]
+,[station_label]
+,[lat]
+,[lon]
+,[river_name]
+,[catchment_name]
+,[town]
+ FROM [silver].[vw_stations]
