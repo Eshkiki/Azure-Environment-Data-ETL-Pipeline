@@ -3,7 +3,7 @@
 ## Overview
 This project implements an end-to-end **Azure-based ETL pipeline** that ingests public UK Environment Agency flood monitoring data into a centralized **Azure Data Lake (ADLS Gen2)** for analytics and reporting.
 
-![Dashboard](Screenshots/Dashboard.png)
+![Dashboard](Screenshots/DashBoard.png)
 
 The pipeline is built using **Azure Data Factory**, follows data lake architecture, and is designed to be production-aligned.
 
